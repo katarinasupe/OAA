@@ -1,0 +1,168 @@
+\documentclass[xcolor=dvipsnames, notheorems]{beamer}
+\hypersetup{unicode}
+
+\usepackage{algorithm2e}
+\usepackage{adjustbox}
+\usepackage[utf8]{inputenc}
+\usepackage[croatian]{babel}
+\usepackage{csquotes}
+%\MakeOuterQuote{"}
+\usepackage{tikz}
+\usetheme{Boadilla}
+\usecolortheme{lily}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{listings}
+
+
+\setbeamertemplate{theorems}[] % to number
+
+\theoremstyle{plain} % insert bellow all blocks you want in italic
+\newtheorem{theorem}{Teorem}[] % to number according to section
+
+\theoremstyle{definition} % insert bellow all blocks you want in normal text
+\newtheorem{definition}{Definicija}[] % to number according to section
+
+\definecolor{Coral}{RGB}{255, 111, 97}
+\definecolor{DarkBluishGray}{RGB}{47,52,53}
+\setbeamercolor{title}{fg=Coral, bg=white}
+\setbeamercolor{frametitle}{fg=DarkBluishGray, bg=Coral}
+\setbeamercolor{title in head/foot}{fg=Coral, bg=DarkBluishGray}
+\setbeamercolor{author in head/foot}{fg=Coral, bg=DarkBluishGray}
+\setbeamercolor{date in head/foot}{fg=Coral, bg=DarkBluishGray}
+\setbeamercolor{block title}{bg=Coral,fg=DarkBluishGray}
+
+\setbeamertemplate{enumerate item}{%
+  \usebeamercolor[bg]{item projected}%
+  \raisebox{1.5pt}{\colorbox{Coral}{\color{DarkBluishGray}\footnotesize\insertenumlabel}}%
+}
+\usepackage{listings}
+
+\usepackage[backend=bibtex,style=verbose-trad2]{biblatex}
+\usepackage{biblatex}
+\bibliography{literatura} 
+
+\title{Binarni Euklidov algoritam}
+\subtitle{Domaća zadaća - Oblikovanje i analiza algoritama}
+\author{\texorpdfstring{Katarina Šupe}{Katarina Supe}}
+\institute[PMF--MO]{Prirodoslovno-matematički fakultet --- Matematički odsjek}
+\date{\today}
+
+\begin{document}
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+\begin{frame}{Zadatak}
+Objasniti i implementirati efikasni Euklidov algoritam.\\
+Program treba učitavati dva prirodna broja a i b za koje tražimo najveću zajedničku mjeru. Sam algoritam koristi njihov binarni zapis (jednostavno dijeljenje s dva - \emph{shift} i sl.).
+\end{frame}
+\begin{frame}{Najveća zajednička mjera}
+\begin{definition}
+Neka su $a$ i $b$ cijeli brojevi koji nisu oba nula. Za prirodan broj $d$ kažemo da je najveća zajednička mjera (ili najveći zajednički djelitelj) brojeva $a$ i $b$, i pišemo $d=NZM(a,b)$ , ako $d$ ima sljedeća svojstva:
+\begin{enumerate}
+    \item   $d\mid a$ i $d\mid b$
+    \item  Za svaki prirodni $c$, $c\mid a$ i $c \mid b \Rightarrow c\mid d$
+\end{enumerate}
+\end{definition}
+Kada su oba broja nula, svaki prirodni broj dijeli nulu, pa ne možemo primijeniti gornju definiciju. Stoga postavimo:
+\[ NZM(0,0) = 0 \]
+\end{frame}
+
+\begin{frame}{Najveća zajednička mjera}
+Iz definicije slijedi:\\
+\[ NZM(a,b) = NZM(b,a) \]
+\[ NZM(a,b) = NZM(-a,b) \]
+\[ NZM(a, 0) = |a| \]
+Još neka bitna svojstva:
+\[ NZM(k \cdot a, k \cdot b) = k \cdot  NZM(a,b) \]
+\[ \text{ako je } NZM(a,b) = 1 \text{ tada je } NZM(a, k \cdot b) =NZM(a, k) \]
+\[ NZM(a, b) = NZM(a - b, b) \]
+\end{frame}
+
+
+\begin{frame}{Najveća zajednička mjera}
+Iz osnovnog teorema aritmetike slijedi faktorizacija nekog prirodnog broja $a$ (do na poredak prostih faktora):
+\[ a = 2^{a_2} \cdot 3^{a_3} \cdot 5^{a_5} \cdot 7^{a_7} \cdots =   \prod_{p \text{ prost}} p^{a_p} \]
+gdje su $a_p$ jedinstveni nenegativni brojevi. Svi osim konačno mnogo eksponenata $a_p$ su jednaki nula.  \\
+Po definiciji tada slijedi:
+\[ NZM(a,b) = \prod_{p \text{ prost}} p^{\min(a_p, b_p)} \]
+Npr. $a = 24 = 2^3 \cdot 3^1$, $b = 4 = 2^2 \cdot 3^0$ pa je $NZM(a,b) = 2^{\min(3,2)} \cdot 3^{\min(1,0)} = 2^2 \cdot 3^0 = 4$
+\end{frame}
+
+\begin{frame}
+\frametitle{Općenito o Euklidovom algoritmu}
+Gornji navedeni algoritam za pronalaženje najveće zajedničke mjere je jasan na papiru te vraća točan rezultat. Međutim, nije efikasan, jer zahtijeva faktorizaciju brojeva $a$ i $b$, što zahtijeva dijeljenje tih brojeva s prostim brojevima redom, sve dok $a$ i $b$ ne postanu $1$.\\
+Euklid je u svojim \emph{Elementima} pronašao metodu za određivanje najveće zajedničke mjere dvaju cijelih brojeva, bez faktoriziranja danih brojeva.
+\end{frame}
+
+\begin{frame}
+\frametitle{Općenito o Euklidovom algoritmu}
+Odsad možemo promatrati nalaženje najveće zajedničke mjere dvaju nenegativnih brojeva, što je u skladu s našim zadatkom. Spomenimo dvije verzije Euklidovog algoritma za nalaženje najveće zajedičke mjere, koji su doveli do efikasnog binarnog algoritma. Prva verzija nalazi $NZM(a,b)$ oduzimanjem, a druga dijeljenjem s ostatkom.
+\end{frame}
+\begin{frame}{Euklidov algoritam s oduzimanjem}
+Euklidov algoritam s oduzimanjem rekurzivno traži $NZM$ manjeg broja te razlike većeg i manjeg broja, sve dok ne postanu jednaki.
+\lstinputlisting[language=c, basicstyle=\footnotesize]{euklid_oduzimanje.c} 
+\end{frame}
+\begin{frame}{Euklidov algoritam s dijeljenjem s ostatkom}
+Dijelimo s ostatkom sve dok $a$ ne postane djeljiv s $b$. Tada je posljednji ostatak različit od $0$ upravo $NZM(a,b)$.
+\lstinputlisting[language=c, basicstyle=\footnotesize]{euklid_dijeljenje.c} 
+\end{frame}
+\begin{frame}{Binarni algoritam}
+Binarni GCD algoritam (\emph{greatest common divisor} = najveći zajednički djelitelj = najveća zajednička mjera) poznat je kao \emph{Stein}ov algoritam (\emph{Josef Stein}, 1967.) ili binarni Euklidov algoritam. Taj algoritam nalazi najveću zajedničku mjeru dvaju nenegativnih brojeva. \emph{Stein}ov algoritam koristi jednostavnije artimetičke operacije od običnog Euklidovog algoritma s dijeljenjem s ostatkom. Dijeljenje mijenja s aritmetičkim posmacima (\emph{shift}), usporedbama i oduzimanjem. 
+\end{frame}
+\begin{frame}{Ideja binarnog algoritma}
+Pomoću svojstava najveće zajedničke mjere, dolazimo do algoritma:
+\begin{enumerate}
+\item Ako je $a$ jednak $b$, tada je $NZM(a,b) = a$.\\
+\item Ako je $a$ jednak $0$, tada je $NZM(a,b) = b$. \\
+\item Ako je $b$ jednak $0$, tada je $NZM(a,b) = a$.\\
+\item Ako su $a$ i $b$ parni, tada je $NZM(a,b) = 2 NZM(a/2, b/2)$.\\
+\item Ako je $a$ paran i $b$ neparan, tada je $NZM(a,b) = NZM(a/2, b)$.\\
+\item Ako je $a$ neparan i $b$ paran, tada je $NZM(a,b) = NZM(a, b/2)$.\\
+\item Ako su $a$ i $b$ neparni te $a > b$, tada je $a - b$ paran broj te je $NZM(a,b) = NZM((a-b)/2,b)$.\\
+\item Ako su $a$ i $b$ neparni te $a < b$, tada je $b - a$ paran broj te je $NZM(a,b) = NZM((b-a)/2,a)$.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Primjer: $a = 49, b = 14$}
+\only<1>{Računamo $NZM(49, 14)$}
+\only<2>{Računamo $NZM(49, 7)$}
+\only<3>{Računamo $NZM((49-7)/2, 7) = NZM(21,7)$}
+\only<4>{Računamo $NZM((21-7)/2, 7) = NZM(7,7) = 7$}
+\begin{enumerate}
+\item \alert<4>{Ako je $a$ jednak $b$, tada je $NZM(a,b) = a$.}\\
+\item Ako je $a$ jednak $0$, tada je $NZM(a,b) = b$. \\
+\item Ako je $b$ jednak $0$, tada je $NZM(a,b) = a$.\\
+\item Ako su $a$ i $b$ parni, tada je $NZM(a,b) = 2 NZM(a/2, b/2)$.\\
+\item Ako je $a$ paran i $b$ neparan, tada je $NZM(a,b) = NZM(a/2, b).$\\
+\item \alert<1>{Ako je $a$ neparan i $b$ paran, tada je $NZM(a,b) = NZM(a, b/2)$.}\\
+\item \alert<2,3>{Ako su $a$ i $b$ neparni te $a > b$, tada je $a - b$ paran broj te je $NZM(a,b) = NZM((a-b)/2,b)$.}\\
+\item Ako su $a$ i $b$ neparni te $a < b$, tada je $b - a$ paran broj te je $NZM(a,b) = NZM((b-a)/2,a)$.
+\end{enumerate}
+\end{frame}
+\begin{frame}{Implementacija binarnog algoritma}
+Ovaj algoritam naziva se \textbf{binarnim}, jer kao što smo već spomenuli, ne koristi obično dijeljenje brojeva, već samo dijeljenje s $2$. \\  
+\textbf{Dijeljenje s 2}\\
+Desni posmak (\emph{right shift}, \texttt{>>} u \texttt{C-u}):\\
+Neka je $a$ nenegativni broj. Tada broj $a$ dijelimo s $2$ koristeći desnim posmakom za jedno mjesto, tj. $a\texttt{ >> } 1$.\\
+\textbf{Provjera parnosti}\\
+Bitovna konjunkcija (\texttt{AND}, \& u \texttt{C}-u):\\
+Neka je $a$ paran nenegativni broj. Tada je $a$ \& $1$ jednako $0$.\\
+Neka je $a$ neparan nenegativni broj. Tada je $a$ \& $1$ jednako $1$.\\
+\end{frame}    
+
+\begin{frame}{Implementacija binarnog algoritma}
+Pokažimo, za primjer korištenja bitovne konjunkcije i desnog posmaka, kako bi se u \texttt{C}-u, u rekurzivnoj verziji algoritma, implementirale 5., 6. i 7. grana algoritma: 
+\lstinputlisting[language=c, basicstyle=\footnotesize]{grane_binarni.c} 
+\end{frame}
+ \begin{frame}{Složenost}
+ Algoritam zahtijeva $\mathcal{O}(n)$ koraka, gdje je $n$ broj bitova većeg od dva broja, kako svaka dva koraka reduciraju barem jedan od operanada za barem faktor 2. Svaki korak uključuje samo par aritmetičkih operacija ($\mathcal{O}(1)$). Ukoliko su brojevi veličine riječi, svaka artimetička operacija je jedna strojna operacija pa je broj strojnih operacija reda $\log(\max(a,b))$.\\
+Asimptotska složenost ovog algoritma je $\boxed{\mathcal{O}(n^2)}$, kako aritmetičke operacije (oduzimanje i \emph{shift}) uzimaju linearno vrijeme za proizvoljno velike brojeve.  
+ \end{frame}
+ 
+\begin{frame}{Literatura}
+  \printbibliography
+  \nocite{*}
+\end{frame}
+\end{document}
